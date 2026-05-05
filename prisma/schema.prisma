@@ -1,0 +1,70 @@
+// prisma/schema.prisma
+//
+// 설계 의도:
+// - EmissionFactor를 별도 테이블로 분리한 이유:
+//   배출계수는 IPCC 가이드라인, 국가 고시 등에 의해 주기적으로 개정됩니다.
+//   계수가 바뀌면 "과거에 이 계수로 계산한 결과"와 "오늘 새로운 계수로 계산한 결과"가
+//   달라져야 하므로 버전 이력(validFrom/validTo)을 유지합니다.
+//
+// - Activity가 emissionFactorId를 직접 참조하는 이유:
+//   어떤 버전의 계수로 이 활동이 계산됐는지 추적 가능하게 합니다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 활동 데이터 (원소재, 전기, 운송 등 실제 입력 데이터)
+model Activity {
+  id               String          @id @default(cuid())
+  date             DateTime
+  activityType     ActivityType    // 전기 / 원소재 / 운송
+  description      String          // 예: "한국전력", "플라스틱 1"
+  amount           Float           // 사용량
+  unit             String          // kWh, kg, ton-km
+  ghgScope         GHGScope        // Scope 1 / 2 / 3 자동 분류
+  emissionFactor   EmissionFactor? @relation(fields: [emissionFactorId], references: [id])
+  emissionFactorId String?
+  co2e             Float?          // 계산된 kgCO₂e (amount × factor)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("activities")
+}
+
+// 배출계수 테이블 (버전 이력 포함)
+// validTo가 null이면 현재 유효한 계수
+model EmissionFactor {
+  id          String       @id @default(cuid())
+  activityType ActivityType
+  description String        // 예: "한국전력 전기", "플라스틱 1"
+  factor      Float         // kgCO₂e per unit
+  unit        String        // kWh, kg, ton-km
+  source      String        // 출처: "국가 온실가스 배출계수 2024"
+  validFrom   DateTime      // 이 계수가 유효한 시작일
+  validTo     DateTime?     // null이면 현재 유효한 계수
+  activities  Activity[]
+  createdAt   DateTime     @default(now())
+
+  @@map("emission_factors")
+}
+
+// 활동 유형
+// 코드에서 GHG Scope 분류 시 이 값을 기준으로 합니다
+enum ActivityType {
+  ELECTRICITY  // → Scope 2: 간접 배출 (구매한 에너지)
+  MATERIAL     // → Scope 3: 기타 간접 (원소재 upstream)
+  TRANSPORT    // → Scope 3: 기타 간접 (물류 upstream)
+}
+
+// GHG Protocol Scope 분류
+// Scope 1: 직접 배출 (자체 연소), Scope 2: 간접 (전기), Scope 3: 기타 간접
+enum GHGScope {
+  SCOPE_1
+  SCOPE_2
+  SCOPE_3
+}

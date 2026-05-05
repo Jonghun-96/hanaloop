@@ -1,0 +1,29 @@
+# docker-compose.yml
+# 보너스: Docker로 즉시 실행 가능한 환경
+# 사용법: docker compose up -d
+#
+# 설계 의도:
+#   - postgres 서비스: DB만 Docker로 띄우고 Next.js는 호스트에서 실행
+#     (개발 중 hot reload를 활용하기 위함)
+#   - db 데이터는 named volume으로 영속화
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pcf_user
+      POSTGRES_PASSWORD: pcf_pass
+      POSTGRES_DB: pcf_dashboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pcf_user -d pcf_dashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
