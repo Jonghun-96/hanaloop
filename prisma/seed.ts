@@ -118,7 +118,10 @@ async function main() {
     TRANSPORT: GHGScope.SCOPE_3,
   };
 
+  await prisma.activity.deleteMany();
+
   for (const a of rawActivities) {
+    
     await prisma.activity.create({
       data: {
         date: new Date(a.date),

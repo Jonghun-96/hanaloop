@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const emissionFactor = await prisma.emissionFactor.findFirst({
       where: {
         activityType: activityType as ActivityType,
-        description: { contains: description.split(" ")[0] }, // 첫 단어로 매칭
+        // description: { contains: description.split(" ")[0] }, // 첫 단어로 매칭
         validTo: null, // 현재 유효한 계수
       },
     });

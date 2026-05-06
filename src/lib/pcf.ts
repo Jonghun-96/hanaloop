@@ -118,7 +118,13 @@ export function calculatePCFSummary(activities: ActivityWithFactor[]): PCFSummar
   // 월별 집계
   const monthMap = new Map<string, MonthSummary>();
   for (const a of validActivities) {
-    const key = a.date.toISOString().slice(0, 7); // "2025-01"
+
+    if (!a.date) continue;
+
+    const dateObj = new Date(a.date);
+    if (isNaN(dateObj.getTime())) continue;
+    
+    const key = dateObj.toISOString().slice(0, 7);
     const month = parseInt(key.slice(5, 7));
     if (!monthMap.has(key)) {
       monthMap.set(key, {
