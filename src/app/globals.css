@@ -34,6 +34,30 @@ body {
   min-height: 100vh;
 }
 
+
+/* ── Recharts Tooltip 강제 오버라이드 ── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #1a2030 !important;
+  border: 1px solid #2a3340 !important;
+  border-radius: 8px !important;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
+  color: #e8edf2 !important;
+  font-size: 12px !important;
+  margin-bottom: 4px !important;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
+  color: #e8edf2 !important;
+  font-size: 12px !important;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name {
+  color: #8a9ab0 !important;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  color: #e8edf2 !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
 /* ── 레이아웃 ────────────────────────── */
 .layout {
   display: grid;
@@ -247,6 +271,27 @@ input, select {
 input:focus, select:focus { border-color: var(--accent); }
 input.error, select.error { border-color: var(--danger); }
 .error-msg { font-size: 11px; color: var(--danger); margin-top: 2px; }
+.desc-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+.desc-hint {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1;
+  padding: 6px 8px;
+}
+.desc-hint:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* ── 버튼 ────────────────────────────── */
 .btn {

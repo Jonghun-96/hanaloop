@@ -14,6 +14,14 @@ type ActivityWithEF = Activity & {
   emissionFactor: Pick<EmissionFactor, "factor" | "description" | "source"> | null;
 };
 
+type ActivityForm = {
+  date: string;
+  activityType: ActivityType;
+  description: string;
+  amount: string;
+  unit: string;
+};
+
 const TYPE_OPTIONS = [
   { value: ActivityType.ELECTRICITY, label: "전기" },
   { value: ActivityType.MATERIAL, label: "원소재" },
@@ -37,7 +45,7 @@ export default function ActivitiesPage() {
   const [loading, setLoading] = useState(true);
 
   // 폼 상태
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ActivityForm>({
     date: "",
     activityType: ActivityType.ELECTRICITY,
     description: "",
@@ -176,11 +184,19 @@ export default function ActivitiesPage() {
                   value={form.description}
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   className={formErrors.description ? "error" : ""}
-                  list="desc-hints"
                 />
-                <datalist id="desc-hints">
-                  {TYPE_DESC_HINTS[form.activityType].map((h) => <option key={h} value={h} />)}
-                </datalist>
+                <div className="desc-hints">
+                  {TYPE_DESC_HINTS[form.activityType].map((hint) => (
+                    <button
+                      key={hint}
+                      type="button"
+                      className="desc-hint"
+                      onClick={() => setForm((p) => ({ ...p, description: hint }))}
+                    >
+                      {hint}
+                    </button>
+                  ))}
+                </div>
                 {formErrors.description && <span className="error-msg">{formErrors.description}</span>}
               </div>
 

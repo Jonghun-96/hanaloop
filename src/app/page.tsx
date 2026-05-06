@@ -1,11 +1,5 @@
 "use client";
 // src/app/page.tsx — 메인 대시보드
-//
-// 경영자와 실무자 모두를 위한 PCF 전과정 시각화 화면
-// - KPI 카드: 총 배출량, Scope별 합계
-// - 라인 차트: 월별 배출량 추이
-// - 파이 차트: 활동유형별 비중
-// - Scope별 바 차트
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,6 +16,60 @@ const COLORS = {
   material: "#a78bfa",
   transport: "#f97316",
 };
+
+// 항목 이름 → 색상 매핑
+const LABEL_COLOR: Record<string, string> = {
+  "전기": "#3b82f6",
+  "전기 (Scope 2)": "#3b82f6",
+  "원소재": "#a78bfa",
+  "원소재 (Scope 3)": "#a78bfa",
+  "운송": "#f97316",
+  "운송 (Scope 3)": "#f97316",
+};
+
+// 커스텀 Tooltip: hover한 항목 중 가장 큰 값의 색으로 배경 틴트 적용
+function ColoredTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: { name: string; value: number; color: string }[];
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+
+  const dominant = payload.reduce((a, b) => (a.value > b.value ? a : b));
+  const accentColor = LABEL_COLOR[dominant.name] ?? dominant.color ?? "#00d4a0";
+
+  return (
+    <div style={{
+      background: `color-mix(in srgb, ${accentColor} 12%, rgba(14, 18, 24, 0.88))`,
+      border: `1px solid color-mix(in srgb, ${accentColor} 35%, transparent)`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 12,
+      minWidth: 148,
+      backdropFilter: "blur(8px)",
+      boxShadow: `0 4px 20px color-mix(in srgb, ${accentColor} 18%, transparent)`,
+    }}>
+      {label && (
+        <div style={{ color: "#e8edf2", fontWeight: 600, marginBottom: 7, fontSize: 13 }}>
+          {label}
+        </div>
+      )}
+      {payload.map((item) => {
+        const itemColor = LABEL_COLOR[item.name] ?? item.color;
+        return (
+          <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: itemColor, flexShrink: 0 }} />
+            <span style={{ color: "#8a9ab0", flex: 1 }}>{item.name}</span>
+            <span style={{ color: "#e8edf2", fontFamily: "IBM Plex Mono, monospace", fontWeight: 500 }}>
+              {typeof item.value === "number" ? item.value.toFixed(1) : item.value}
+              <span style={{ color: "#4a5568", fontSize: 10, marginLeft: 3 }}>kg</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<PCFSummary | null>(null);
@@ -99,11 +147,8 @@ export default function DashboardPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e2530" />
                     <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{ background: "#111418", border: "1px solid #1e2530", borderRadius: 8, fontSize: 12 }}
-                      labelStyle={{ color: "#e8edf2" }}
-                    />
-                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                    <Tooltip content={<ColoredTooltip />} offset={40} />
+                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: "#8a9ab0" }} />
                     <Line type="monotone" dataKey="electricity" name="전기" stroke={COLORS.electricity} strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="material" name="원소재" stroke={COLORS.material} strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="transport" name="운송" stroke={COLORS.transport} strokeWidth={2} dot={false} />
@@ -129,10 +174,7 @@ export default function DashboardPage() {
                         <Cell key={i} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip
-                      formatter={(v: number) => [`${v.toFixed(1)} kgCO₂e`]}
-                      contentStyle={{ background: "#111418", border: "1px solid #1e2530", borderRadius: 8, fontSize: 12 }}
-                    />
+                    <Tooltip content={<ColoredTooltip />} offset={24} />
                   </PieChart>
                 </ResponsiveContainer>
                 {/* 범례 */}
@@ -155,18 +197,13 @@ export default function DashboardPage() {
             <div className="card">
               <div className="card-title">GHG Scope별 배출량 (kgCO₂e)</div>
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart
-                  data={summary.byMonth}
-                  margin={{ top: 5, right: 5, bottom: 0, left: 0 }}
-                >
+                <BarChart data={summary.byMonth} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e2530" />
                   <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{ background: "#111418", border: "1px solid #1e2530", borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="electricity" name="전기 (Scope 2)" fill={COLORS.electricity} stackId="a" radius={[0,0,0,0]} />
+                  <Tooltip content={<ColoredTooltip />} offset={40} />
+                  <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: "#8a9ab0" }} />
+                  <Bar dataKey="electricity" name="전기 (Scope 2)" fill={COLORS.electricity} stackId="a" />
                   <Bar dataKey="material" name="원소재 (Scope 3)" fill={COLORS.material} stackId="a" />
                   <Bar dataKey="transport" name="운송 (Scope 3)" fill={COLORS.transport} stackId="a" radius={[3,3,0,0]} />
                 </BarChart>
@@ -179,14 +216,12 @@ export default function DashboardPage() {
   );
 }
 
-// ── 사이드바 컴포넌트 ─────────────────────────────────────────────
 function Sidebar({ active }: { active: string }) {
   const items = [
     { href: "/", label: "대시보드", key: "dashboard" },
     { href: "/activities", label: "활동 데이터", key: "activities" },
     { href: "/import", label: "Excel 임포트", key: "import" },
   ];
-
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -195,11 +230,7 @@ function Sidebar({ active }: { active: string }) {
       </div>
       <nav className="sidebar-nav">
         {items.map((item) => (
-          <Link
-            key={item.key}
-            href={item.href}
-            className={`nav-item ${active === item.key ? "active" : ""}`}
-          >
+          <Link key={item.key} href={item.href} className={`nav-item ${active === item.key ? "active" : ""}`}>
             {item.label}
           </Link>
         ))}
