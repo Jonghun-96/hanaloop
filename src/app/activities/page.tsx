@@ -1,8 +1,5 @@
 "use client";
 // src/app/activities/page.tsx
-//
-// 활동 데이터 목록 + 신규 입력 폼
-// 평가 기준: "데이터 입력 화면에서 오류 입력 시 에러 메시지가 표시된다"
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -12,14 +9,6 @@ import { ActivityType } from "@prisma/client";
 
 type ActivityWithEF = Activity & {
   emissionFactor: Pick<EmissionFactor, "factor" | "description" | "source"> | null;
-};
-
-type ActivityForm = {
-  date: string;
-  activityType: ActivityType;
-  description: string;
-  amount: string;
-  unit: string;
 };
 
 const TYPE_OPTIONS = [
@@ -40,12 +29,18 @@ const TYPE_DESC_HINTS: Record<ActivityType, string[]> = {
   TRANSPORT: ["트럭"],
 };
 
+// 유형별 힌트 칩 색상
+const HINT_COLORS: Record<ActivityType, { bg: string; border: string; color: string; activeBg: string }> = {
+  ELECTRICITY: { bg: "#3b82f608", border: "#3b82f630", color: "#3b82f6", activeBg: "#3b82f620" },
+  MATERIAL:    { bg: "#a78bfa08", border: "#a78bfa30", color: "#a78bfa", activeBg: "#a78bfa20" },
+  TRANSPORT:   { bg: "#f9731608", border: "#f9731630", color: "#f97316", activeBg: "#f9731620" },
+};
+
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<ActivityWithEF[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 폼 상태
-  const [form, setForm] = useState<ActivityForm>({
+  const [form, setForm] = useState({
     date: "",
     activityType: ActivityType.ELECTRICITY,
     description: "",
@@ -56,9 +51,7 @@ export default function ActivitiesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  useEffect(() => {
-    loadActivities();
-  }, []);
+  useEffect(() => { loadActivities(); }, []);
 
   async function loadActivities() {
     setLoading(true);
@@ -68,25 +61,13 @@ export default function ActivitiesPage() {
     setLoading(false);
   }
 
-  // ── 폼 유효성 검사 ────────────────────────────────────────────
   function validate(): boolean {
     const errors: Record<string, string> = {};
-
-    if (!form.date) {
-      errors.date = "날짜를 선택하세요";
-    }
-    if (!form.description.trim()) {
-      errors.description = "설명을 입력하세요 (예: 한국전력, 플라스틱 1)";
-    }
-    if (!form.amount.trim()) {
-      errors.amount = "량을 입력하세요";
-    } else if (isNaN(Number(form.amount)) || Number(form.amount) <= 0) {
-      errors.amount = "0보다 큰 숫자를 입력하세요";
-    }
-    if (!form.unit) {
-      errors.unit = "단위를 선택하세요";
-    }
-
+    if (!form.date) errors.date = "날짜를 선택하세요";
+    if (!form.description.trim()) errors.description = "설명을 입력하세요 (예: 한국전력, 플라스틱 1)";
+    if (!form.amount.trim()) errors.amount = "량을 입력하세요";
+    else if (isNaN(Number(form.amount)) || Number(form.amount) <= 0) errors.amount = "0보다 큰 숫자를 입력하세요";
+    if (!form.unit) errors.unit = "단위를 선택하세요";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -94,9 +75,7 @@ export default function ActivitiesPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitMsg(null);
-
     if (!validate()) return;
-
     setSubmitting(true);
     try {
       const res = await fetch("/api/activities", {
@@ -105,7 +84,6 @@ export default function ActivitiesPage() {
         body: JSON.stringify(form),
       });
       const json = await res.json();
-
       if (!res.ok) {
         setSubmitMsg({ type: "error", text: json.error ?? "저장 실패" });
       } else {
@@ -126,13 +104,12 @@ export default function ActivitiesPage() {
   }
 
   function handleTypeChange(type: ActivityType) {
-    const units = UNIT_OPTIONS[type];
-    setForm((prev) => ({ ...prev, activityType: type, unit: units[0], description: "" }));
+    setForm((prev) => ({ ...prev, activityType: type, unit: UNIT_OPTIONS[type][0], description: "" }));
   }
 
   const typeLabel = (t: ActivityType) => ACTIVITY_TYPE_LABELS[t] ?? t;
-  const scopeLabel = (s: string) =>
-    s === "SCOPE_2" ? "Scope 2" : s === "SCOPE_3" ? "Scope 3" : "Scope 1";
+  const scopeLabel = (s: string) => s === "SCOPE_2" ? "Scope 2" : s === "SCOPE_3" ? "Scope 3" : "Scope 1";
+  const chipColors = HINT_COLORS[form.activityType];
 
   return (
     <div className="layout">
@@ -143,7 +120,7 @@ export default function ActivitiesPage() {
           <p>전기·원소재·운송 활동 데이터를 입력하면 kgCO₂e가 자동 계산됩니다</p>
         </div>
 
-        {/* ── 입력 폼 ── */}
+        {/* 입력 폼 */}
         <div className="card" style={{ marginBottom: 24 }}>
           <div className="card-title">신규 활동 데이터 입력</div>
 
@@ -185,13 +162,25 @@ export default function ActivitiesPage() {
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   className={formErrors.description ? "error" : ""}
                 />
-                <div className="desc-hints">
+                {/* 커스텀 힌트 칩 */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
                   {TYPE_DESC_HINTS[form.activityType].map((hint) => (
                     <button
                       key={hint}
                       type="button"
-                      className="desc-hint"
                       onClick={() => setForm((p) => ({ ...p, description: hint }))}
+                      style={{
+                        padding: "3px 10px",
+                        borderRadius: 20,
+                        border: `1px solid ${chipColors.border}`,
+                        background: form.description === hint ? chipColors.activeBg : chipColors.bg,
+                        color: chipColors.color,
+                        fontSize: 11,
+                        fontFamily: "var(--font-mono)",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        outline: "none",
+                      }}
                     >
                       {hint}
                     </button>
@@ -247,7 +236,7 @@ export default function ActivitiesPage() {
           </form>
         </div>
 
-        {/* ── 목록 ── */}
+        {/* 목록 */}
         <div className="card">
           <div className="card-title">활동 데이터 목록 ({activities.length}건)</div>
           {loading ? (
