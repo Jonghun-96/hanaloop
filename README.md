@@ -9,13 +9,13 @@
 ## 스크린샷 & 데모 영상
 
 ### 데모 영상
-[![데모 영상](docs/screenshot-dashboard.png)](https://youtube.com/YOUR_VIDEO_LINK)
+[![데모 영상](docs/video_capture.MP4)]
 
 ### 대시보드
 ![대시보드](docs/dashboard.JPG)
 
 ### 활동 데이터 입력 및 목록
-![활동데이터](docs/data.list.JPG)
+![활동데이터](docs/data_list.JPG)
 
 ### 유효성 검사 에러 메시지
 ![에러메시지](docs/data_err.JPG)
