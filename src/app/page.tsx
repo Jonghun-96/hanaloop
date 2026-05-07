@@ -201,7 +201,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e2530" />
                   <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} />
-                  <Tooltip content={<ColoredTooltip />} offset={40} />
+                  <Tooltip content={<ColoredTooltip />} offset={60} />
                   <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: "#8a9ab0" }} />
                   <Bar dataKey="electricity" name="전기 (Scope 2)" fill={COLORS.electricity} stackId="a" />
                   <Bar dataKey="material" name="원소재 (Scope 3)" fill={COLORS.material} stackId="a" />

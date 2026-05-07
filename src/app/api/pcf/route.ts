@@ -14,6 +14,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculatePCFSummary } from "@/lib/pcf";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const activities = await prisma.activity.findMany({
