@@ -9,7 +9,7 @@
 ## 스크린샷 & 데모 영상
 
 ### 데모 영상
-[![데모 영상](docs/video_capture.MP4)]
+[![데모 영상](https://github.com/user-attachments/assets/video_capture.mp4)]
 
 ### 대시보드
 ![대시보드](docs/dashboard.JPG)
