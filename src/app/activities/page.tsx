@@ -104,7 +104,7 @@ export default function ActivitiesPage() {
   }
 
   function handleTypeChange(type: ActivityType) {
-    setForm((prev) => ({ ...prev, activityType: type, unit: UNIT_OPTIONS[type][0], description: "" }));
+    setForm((prev) => ({ ...prev, activityType: type, unit: UNIT_OPTIONS[type]?.[0] ?? "" }));
   }
 
   const typeLabel = (t: ActivityType) => ACTIVITY_TYPE_LABELS[t] ?? t;
