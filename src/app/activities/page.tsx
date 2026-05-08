@@ -40,12 +40,18 @@ export default function ActivitiesPage() {
   const [activities, setActivities] = useState<ActivityWithEF[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    date: string;
+    activityType: ActivityType;
+    description: string;
+    amount: string;
+    unit: string;
+  }>({
     date: "",
-    activityType: ActivityType.ELECTRICITY,
+    activityType: "ELECTRICITY",
     description: "",
     amount: "",
-    unit: "kWh",
+    unit: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
